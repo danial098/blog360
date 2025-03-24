@@ -4,10 +4,12 @@ include "includes/db.php";
 
 // Function to get recent posts for sidebar
 function get_recent_posts($conn, $limit = 2) {
+    $conditions = ["p.is_removed = 0"];
     $stmt = $conn->prepare("
         SELECT p.*, u.full_name 
         FROM blog_posts p 
         JOIN users u ON p.user_id = u.user_id 
+        WHERE p.is_removed = 0
         ORDER BY p.created_at DESC 
         LIMIT ?
     ");
