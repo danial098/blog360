@@ -2,7 +2,6 @@
 session_start();
 include "includes/db.php";
 
-// Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -10,7 +9,6 @@ if (!isset($_SESSION['user_id'])) {
 
 $message = "";
 
-// Fetch categories for the dropdown
 $categories_result = $conn->query("SELECT * FROM categories");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -19,14 +17,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user_id = $_SESSION['user_id'];
     $selected_categories = $_POST['categories'] ?? [];
 
-    if ($title && $content) {
-        $stmt = $conn->prepare("INSERT INTO blog_posts (user_id, title, content) VALUES (?, ?, ?)");
-        $stmt->bind_param("iss", $user_id, $title, $content);
+    $image_path = "";
+
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+        $allowed = [
+            "jpg"  => "image/jpeg",
+            "jpeg" => "image/jpeg",
+            "png"  => "image/png",
+            "gif"  => "image/gif"
+        ];
+        $filename = $_FILES['image']['name'];
+        $filetype = $_FILES['image']['type'];
+        $filesize = $_FILES['image']['size'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+        if (!array_key_exists($ext, $allowed)) {
+            $message = "Error: Please select a valid file format (JPG, JPEG, PNG, GIF).";
+        }
+        $maxsize = 5 * 1024 * 1024;
+        if ($filesize > $maxsize) {
+            $message = "Error: File size is larger than allowed limit of 5MB.";
+        }
+        if (in_array($filetype, $allowed) && !$message) {
+            if (!is_dir("uploads")) {
+                mkdir("uploads", 0777, true);
+            }
+            $new_filename = uniqid() . "." . $ext;
+            $destination = "uploads/" . $new_filename;
+            if (move_uploaded_file($_FILES["image"]["tmp_name"], $destination)) {
+                $image_path = $destination;
+            } else {
+                $message = "Error: There was a problem uploading your file.";
+            }
+        } else if (!$message) {
+            $message = "Error: There was a problem with your file upload.";
+        }
+    }
+
+    if ($title && $content && !$message) {
+        $stmt = $conn->prepare("INSERT INTO blog_posts (user_id, title, content, image) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("isss", $user_id, $title, $content, $image_path);
 
         if ($stmt->execute()) {
             $post_id = $stmt->insert_id;
 
-            // Link categories
             if (!empty($selected_categories)) {
                 $cat_stmt = $conn->prepare("INSERT INTO post_categories (post_id, category_id) VALUES (?, ?)");
                 foreach ($selected_categories as $cat_id) {
@@ -41,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $message = "❌ Error: " . $stmt->error;
         }
         $stmt->close();
-    } else {
+    } else if (!$title || !$content) {
         $message = "❌ Title and content are required.";
     }
 }
@@ -57,7 +91,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body class="bg-light">
 
 <div class="container mt-5">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="index.php">Home</a></li>
@@ -71,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="alert alert-info mt-3"><?= $message ?></div>
     <?php endif; ?>
 
-    <form method="POST" class="card p-4 shadow-sm mt-3">
+    <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm mt-3">
         <div class="mb-3">
             <label class="form-label">Title</label>
             <input name="title" class="form-control" required>
@@ -79,6 +112,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="mb-3">
             <label class="form-label">Content</label>
             <textarea name="content" class="form-control" rows="6" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Image</label>
+            <input type="file" name="image" class="form-control">
+            <div class="form-text">Optional. Allowed formats: JPG, JPEG, PNG, GIF. Max size: 5MB.</div>
         </div>
         <div class="mb-3">
             <label class="form-label">Categories</label>
