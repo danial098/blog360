@@ -61,33 +61,209 @@ $stmt->close();
 <head>
     <meta charset="UTF-8">
     <title>Your Profile</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: #090d1f;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            line-height: 1.5;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: #6941c6;
+        }
+        
+        button {
+            cursor: pointer;
+        }
+        
+        .container {
+            max-width: 1216px;
+            margin: 0 auto;
+            padding: 50px 32px;
+        }
+        
+        .header {
+            background: #090d1f;
+            padding: 30px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breadcrumb {
+            display: flex;
+            list-style: none;
+            margin-bottom: 30px;
+        }
+        
+        .breadcrumb-item {
+            color: #c0c5d0;
+            font-size: 16px;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "/";
+            padding: 0 8px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .breadcrumb-item.active {
+            color: #ffffff;
+        }
+        
+        h2 {
+            color: #ffffff;
+            font-family: "Inter-SemiBold", sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+        
+        .alert {
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+        }
+        
+        .alert-info {
+            background: rgba(105, 65, 198, 0.1);
+            border: 1px solid rgba(105, 65, 198, 0.3);
+            color: #ffffff;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .form-label {
+            display: block;
+            color: #c0c5d0;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #6941c6;
+            box-shadow: 0 0 0 4px rgba(105, 65, 198, 0.2);
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
         .profile-img {
             width: 100px;
             height: 100px;
             object-fit: cover;
             border-radius: 50%;
+            border: 2px solid #6941c6;
+            margin-top: 8px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: #6941c6;
+            color: #ffffff;
+        }
+        
+        .btn-primary:hover {
+            background: #5836a3;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mb-3 {
+            margin-bottom: 24px;
+        }
+        
+        .ms-2 {
+            margin-left: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 16px;
+            }
+            
+            .card {
+                padding: 24px 16px;
+            }
         }
     </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
+<body>
+<div class="header">
+    <div class="navbar">
+        <div class="cosc-360">COSC-360</div>
+    </div>
+</div>
+
+<div class="container">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
+    <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="index.php">Home</a></li>
             <li class="breadcrumb-item active" aria-current="page">Profile</li>
         </ol>
     </nav>
 
-    <h2 class="mb-3">👤 Your Profile</h2>
+    <h2>👤 Your Profile</h2>
 
     <?php if (!empty($message)): ?>
         <div class="alert alert-info"><?= $message ?></div>
     <?php endif; ?>
 
-    <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+    <form method="POST" enctype="multipart/form-data" class="card">
         <div class="mb-3">
             <label class="form-label">Username (readonly)</label>
             <input type="text" class="form-control" value="<?= htmlspecialchars($username) ?>" readonly>
@@ -109,7 +285,7 @@ $stmt->close();
             <input type="file" name="profile_image" class="form-control">
             <?php if ($profile_image): ?>
                 <div class="mt-2">
-                    <img src="<?= $profile_image ?>" class="profile-img border">
+                    <img src="<?= $profile_image ?>" class="profile-img">
                 </div>
             <?php endif; ?>
         </div>
@@ -117,5 +293,6 @@ $stmt->close();
         <a href="index.php" class="btn btn-secondary ms-2">Back</a>
     </form>
 </div>
+
 </body>
 </html>

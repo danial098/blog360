@@ -14,12 +14,12 @@ if ($content === "") {
     exit;
 }
 
-// Insert comment
 $stmt = $conn->prepare("INSERT INTO comments (post_id, user_id, content) VALUES (?, ?, ?)");
 $stmt->bind_param("iis", $post_id, $user_id, $content);
 $stmt->execute();
+$comment_id = $stmt->insert_id;
+$stmt->close();
 
-// Get commenter info
 $info = $conn->prepare("SELECT full_name FROM users WHERE user_id = ?");
 $info->bind_param("i", $user_id);
 $info->execute();
@@ -28,13 +28,20 @@ $info->fetch();
 $info->close();
 
 $date = date("Y-m-d H:i:s");
+$formatted_date = date('j M Y, H:i', strtotime($date));
 
-// Return the new comment HTML block
+// Return the new comment HTML block with the dark theme styling
 ?>
-<div class="card mb-2">
-    <div class="card-body">
+<div class="comment-item">
+    <div class="comment-header">
         <strong><?= htmlspecialchars($full_name) ?></strong>
-        <p class="mb-1"><?= nl2br(htmlspecialchars($content)) ?></p>
-        <small class="text-muted"><?= $date ?></small>
+        <small class="date"><?= $formatted_date ?></small>
+    </div>
+    <div class="comment-content">
+        <?= nl2br(htmlspecialchars($content)) ?>
+    </div>
+    <div class="comment-buttons">
+        <a href="edit_comment.php?id=<?= $comment_id ?>&post=<?= $post_id ?>" class="edit-btn">Edit</a>
+        <a href="delete_comment.php?id=<?= $comment_id ?>&post=<?= $post_id ?>" class="delete-btn">Delete</a>
     </div>
 </div>

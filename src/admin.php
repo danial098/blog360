@@ -2,7 +2,6 @@
 session_start();
 include "includes/db.php";
 
-// Only allow admins
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: index.php");
     exit();
@@ -17,7 +16,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 </head>
 <body class="bg-light">
 <div class="container mt-5">
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="index.php">Home</a></li>
@@ -27,7 +25,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
     <h2 class="mb-4">🛠️ Admin Dashboard</h2>
 
-    <!-- USERS TABLE -->
     <h4>👥 Users</h4>
     <table class="table table-sm table-bordered">
         <thead class="table-light">
@@ -63,7 +60,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
         </tbody>
     </table>
 
-    <!-- POSTS TABLE -->
     <h4 class="mt-5">📝 Posts</h4>
     <table class="table table-sm table-bordered">
         <thead class="table-light">

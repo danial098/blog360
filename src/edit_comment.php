@@ -37,27 +37,97 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Edit Comment</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>Edit Comment</title>
+  <!-- Link your custom stylesheet that contains your provided CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Additional styles for this page -->
+  <style>
+    /* Style textarea similar to the .input style in your CSS, but adjusted for a larger comment box */
+    textarea {
+      background: #ffffff;
+      border-radius: 8px;
+      border: 1px solid #d0d5dd;
+      padding: 12px 16px;
+      width: 100%;
+      color: #090d1f;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    /* Primary button style matching your accent color */
+    .button-primary {
+      background: #6941c6;
+      color: #ffffff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .button-primary:hover {
+      background: rgba(105, 65, 198, 0.5);
+    }
+    /* Secondary button style for cancel links */
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .button-secondary:hover {
+      background: rgba(105, 65, 198, 0.5);
+    }
+    /* A simple alert style for error messages */
+    .alert {
+      background: #ff4d4f;
+      color: #ffffff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    /* Container for the edit comment page */
+    .edit-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 0 32px;
+    }
+    .edit-header {
+      color: #ffffff;
+      font-family: "Inter-SemiBold", sans-serif;
+      font-size: 24px;
+      margin-bottom: 32px;
+    }
+  </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h4>Edit Your Comment</h4>
-    <?php if ($message): ?>
-        <div class="alert alert-danger"><?= $message ?></div>
-    <?php endif; ?>
-    <form method="POST">
-        <div class="mb-3">
-            <textarea name="content" class="form-control" rows="4" required><?= htmlspecialchars($comment['content']) ?></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <a href="post.php?id=<?= $comment['post_id'] ?>" class="btn btn-secondary">Cancel</a>
-    </form>
-</div>
+<body>
+  <div class="edit-container">
+      <h4 class="edit-header">Edit Your Comment</h4>
+      <?php if ($message): ?>
+          <div class="alert"><?= $message ?></div>
+      <?php endif; ?>
+      <form method="POST">
+          <div class="mb-3">
+              <textarea name="content" rows="4" required><?= htmlspecialchars($comment['content']) ?></textarea>
+          </div>
+          <div style="display: flex; gap: 16px;">
+              <button type="submit" class="button-primary">Save Changes</button>
+              <a href="post.php?id=<?= $comment['post_id'] ?>" class="button-secondary">Cancel</a>
+          </div>
+      </form>
+  </div>
 </body>
 </html>
