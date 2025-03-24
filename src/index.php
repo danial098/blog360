@@ -85,9 +85,6 @@ $result = $conn->query($sql);
             <div class="blog2">Blog</div>
           </div>
         </a>
-        <a class="about" href="#">
-          <div class="about2">About</div>
-        </a>
         <?php if (isset($_SESSION['username'])): ?>
           <a class="newsletter" href="logout.php">
             <div class="log-in">Log out</div>
