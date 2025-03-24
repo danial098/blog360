@@ -85,7 +85,7 @@ $result = $conn->query($sql);
             <div class="blog2">Blog</div>
           </div>
         </a>
-        <a class="about" href="#">
+        <a class="about" href="/about.php">
           <div class="about2">About</div>
         </a>
         <?php if (isset($_SESSION['username'])): ?>
@@ -112,14 +112,7 @@ $result = $conn->query($sql);
 
   
   <div class="dark-mode">
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <h1 class="the-blog">THE BLOG</h1>
-      </div>
-    </section>
 
-      <!-- Category Filter Section -->
   <section class="category-filter">
     <div class="container">
       <h4>📂 Filter by Category</h4>
