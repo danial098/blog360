@@ -6,26 +6,47 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    $username  = $_POST['username'];
     $full_name = $_POST['full_name'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $email     = $_POST['email'];
+    $password  = password_hash($_POST['password'], PASSWORD_DEFAULT);
     
-    // Check if username already exists
-    $check = $conn->prepare("SELECT 1 FROM users WHERE username = ?");
-    $check->bind_param("s", $username);
-    $check->execute();
-    if ($check->get_result()->num_rows > 0) {
-        $error = "❌ Username already taken";
-    } else {
-        $stmt = $conn->prepare("INSERT INTO users (username, full_name, email, password_hash, role, is_active) VALUES (?, ?, ?, ?, 'registered', 1)");
-        $stmt->bind_param("ssss", $username, $full_name, $email, $password);
-        if ($stmt->execute()) {
-            $success = "✅ Registration successful!";
+    
+    $profile_image = null;
+    if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+        $allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
+        if (in_array($_FILES['profile_image']['type'], $allowed_types)) {
+            $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
+            $new_filename = "user_" . time() . "." . $ext;
+            $target = "uploads/" . $new_filename;
+            if (!move_uploaded_file($_FILES['profile_image']['tmp_name'], $target)) {
+                $error = "❌ There was a problem uploading the image.";
+            } else {
+                $profile_image = $target;
+            }
         } else {
-            $error = "❌ Error: " . $stmt->error;
+            $error = "❌ Invalid image type. Only JPG, PNG, and WEBP allowed.";
         }
-        $stmt->close();
+    }
+
+    if (empty($error)) {
+        // Check if username already exists
+        $check = $conn->prepare("SELECT 1 FROM users WHERE username = ?");
+        $check->bind_param("s", $username);
+        $check->execute();
+        if ($check->get_result()->num_rows > 0) {
+            $error = "❌ Username already taken";
+        } else {
+            // Updated query to include profile_image column.
+            $stmt = $conn->prepare("INSERT INTO users (username, full_name, email, password_hash, profile_image, role, is_active) VALUES (?, ?, ?, ?, ?, 'registered', 1)");
+            $stmt->bind_param("sssss", $username, $full_name, $email, $password, $profile_image);
+            if ($stmt->execute()) {
+                $success = "✅ Registration successful!";
+            } else {
+                $error = "❌ Error: " . $stmt->error;
+            }
+            $stmt->close();
+        }
     }
 }
 ?>
@@ -65,7 +86,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         input[type="text"],
         input[type="email"],
-        input[type="password"] {
+        input[type="password"],
+        input[type="file"] {
             width: 100%;
             padding: 12px;
             border: none;
@@ -146,7 +168,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?= $success ?> <a href="login.php" style="color: #4CAF50; text-decoration: underline;">Login here</a>
             </div>
         <?php else: ?>
-            <form method="POST">
+            <!-- Added enctype attribute for file uploads -->
+            <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <input type="text" name="username" placeholder="Username" required>
                 </div>
@@ -161,6 +184,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 <div class="form-group">
                     <input type="password" name="password" placeholder="Password" required>
+                </div>
+                
+                <!-- optional image upload field -->
+                <div class="form-group">
+                    <label for="profile_image">Profile Image (optional)</label>
+                    <input type="file" name="profile_image" id="profile_image">
                 </div>
                 
                 <button type="submit">Register</button>
