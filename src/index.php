@@ -85,6 +85,7 @@ $result = $conn->query($sql);
           <div class="blog2">Blog</div>
         </div>
       </a>
+      <a class="blog2" href="profile.php">Profile</a>
 
       <?php if (isset($_SESSION['username'])): ?>
         <?php if ($_SESSION['role'] === 'admin'): ?>
