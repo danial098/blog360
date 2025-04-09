@@ -123,6 +123,41 @@ $result = $conn->query($sql);
       max-width: 100%;
       margin: 0 auto; 
     }
+
+    /* Styling for create blog post section */
+    .create-post {
+      padding: 20px 0;
+      max-width: 1280px;
+      margin: 0 auto;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .create-post .container {
+      padding: 0 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .create-post h4 {
+      color: #ffffff;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .create-post a.btn.create-post-btn {
+      background: #6941c6;
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.3s ease;
+    }
+
+    .create-post a.btn.create-post-btn:hover {
+      background: #4527A0;
+    }
   </style>
 </head>
 <body>
@@ -215,6 +250,16 @@ $result = $conn->query($sql);
       <canvas id="weeklyChart" width="400" height="200"></canvas>
     </div>
   </section>
+
+  <!-- Create Post Section (only visible to logged-in users) -->
+  <?php if(isset($_SESSION['username'])): ?>
+    <section class="create-post">
+      <div class="container">
+        <h4>📝 Create a Blog Post</h4>
+        <a href="create_post.php" class="btn create-post-btn">Write Post</a>
+      </div>
+    </section>
+  <?php endif; ?>
     
     <main class="blog-page-header">
       <!-- Recent Blog Posts Section -->
