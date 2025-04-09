@@ -76,36 +76,44 @@ $result = $conn->query($sql);
   </style>
 </head>
 <body>
-  <header class="header">
-    <div class="navbar">
-      <a class="cosc-360" href="#">COSC 360</a>
-      <nav class="menu">
-        <a class="blog" href="#">
-          <div class="frame-1000000803">
-            <div class="blog2">Blog</div>
-          </div>
-        </a>
-        <?php if (isset($_SESSION['username'])): ?>
-          <a class="newsletter" href="logout.php">
-            <div class="log-in">Log out</div>
-          </a>
-        <?php else: ?>
-          <a class="newsletter" href="login.php">
-            <div class="log-in">Log in</div>
+<header class="header">
+  <div class="navbar">
+    <a class="cosc-360" href="#">COSC 360</a>
+    <nav class="menu">
+      <a class="blog" href="#">
+        <div class="frame-1000000803">
+          <div class="blog2">Blog</div>
+        </div>
+      </a>
+
+      <?php if (isset($_SESSION['username'])): ?>
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+          <a class="newsletter" href="admin.php">
+            <div class="log-in">Admin Dashboard</div>
           </a>
         <?php endif; ?>
-        <div class="input">
-          <form method="GET" action="index.php">
-            <?php if ($selected_category): ?>
-              <input type="hidden" name="category" value="<?= $selected_category ?>">
-            <?php endif; ?>
-            <input id="search-input" name="search" class="content6" type="search" placeholder="Search" value="<?= htmlspecialchars($search_term) ?>">
-            <button type="submit">Search</button>
-          </form>
-        </div>
-      </nav>
-    </div>
-  </header>
+        <a class="newsletter" href="logout.php">
+          <div class="log-in">Log out</div>
+        </a>
+      <?php else: ?>
+        <a class="newsletter" href="login.php">
+          <div class="log-in">Log in</div>
+        </a>
+      <?php endif; ?>
+
+      <div class="input">
+        <form method="GET" action="index.php">
+          <?php if ($selected_category): ?>
+            <input type="hidden" name="category" value="<?= $selected_category ?>">
+          <?php endif; ?>
+          <input id="search-input" name="search" class="content6" type="search" placeholder="Search" value="<?= htmlspecialchars($search_term) ?>">
+          <button type="submit">Search</button>
+        </form>
+      </div>
+    </nav>
+  </div>
+</header>
+
 
   
   <div class="dark-mode">
