@@ -117,14 +117,7 @@ $result = $conn->query($sql);
 
   
   <div class="dark-mode">
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <h1 class="the-blog">THE BLOG</h1>
-      </div>
-    </section>
 
-      <!-- Category Filter Section -->
   <section class="category-filter">
     <div class="container">
       <h4>📂 Filter by Category</h4>
