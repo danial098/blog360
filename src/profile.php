@@ -292,6 +292,52 @@ $stmt->close();
         <button type="submit" class="btn btn-primary">Update Profile</button>
         <a href="index.php" class="btn btn-secondary ms-2">Back</a>
     </form>
+    <!-- Comment History Section -->
+    <div class="card" style="margin-top: 32px;">
+        <h2>Your Comment History</h2>
+        <?php
+        // Prepare statement to fetch comments for the current user
+        $stmt = $conn->prepare("
+            SELECT c.comment_id, c.content, c.created_at, b.post_id, b.title
+            FROM comments c
+            JOIN blog_posts b ON c.post_id = b.post_id
+            WHERE c.user_id = ?
+            ORDER BY c.created_at DESC
+        ");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $commentsResult = $stmt->get_result();
+
+        if ($commentsResult->num_rows > 0) {
+            while ($row = $commentsResult->fetch_assoc()) {
+                ?>
+                <div class="comment-item" style="margin-bottom: 24px;">
+                    <!-- Post Title -->
+                    <h3 style="margin-bottom: 8px;">
+                        <a href="post.php?post_id=<?= $row['post_id'] ?>">
+                            <?= htmlspecialchars($row['title']) ?>
+                        </a>
+                    </h3>
+
+                    <!-- Timestamp -->
+                    <p style="color: #c0c5d0; margin-bottom: 8px;">
+                        <strong>Commented on:</strong> <?= htmlspecialchars($row['created_at']) ?>
+                    </p>
+
+                    <!-- Actual Comment Content -->
+                    <p><?= nl2br(htmlspecialchars($row['content'])) ?></p>
+                </div>
+                <hr style="border: none; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 24px;">
+                <?php
+            }
+        } else {
+            echo "<p>You haven't posted any comments yet.</p>";
+        }
+
+        $stmt->close();
+        ?>
+    </div>
+
 </div>
 
 </body>
