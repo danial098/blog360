@@ -2,6 +2,33 @@
 session_start();
 include "includes/db.php";
 
+$one_week_ago = date('Y-m-d H:i:s', strtotime('-7 days'));
+
+$sql_weekly = "
+    SELECT p.title,
+           COUNT(l.post_id) AS likes_last_week
+    FROM blog_posts p
+    LEFT JOIN likes l ON p.post_id = l.post_id
+    WHERE p.is_removed = 0
+      AND (l.created_at >= '$one_week_ago' OR l.created_at IS NULL)
+    GROUP BY p.post_id
+    ORDER BY likes_last_week DESC
+    LIMIT 5
+";
+
+$weeklyResult = $conn->query($sql_weekly);
+$weeklyData = [];
+
+while ($row = $weeklyResult->fetch_assoc()) {
+    $weeklyData[] = [
+        'title' => $row['title'],
+        'likes' => (int)$row['likes_last_week']
+    ];
+}
+
+
+$weeklyDataJson = json_encode($weeklyData);
+
 // Fetch categories for the category filter
 $categories = $conn->query("SELECT * FROM categories");
 
@@ -73,6 +100,29 @@ $result = $conn->query($sql);
        margin: 0;
        padding: 0;
    }
+   /* Weekly Analysis Section */
+   .weekly-analysis {
+      padding: 0 0 30px 0;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .weekly-analysis .container {
+      padding: 0 32px;
+    }
+
+    .weekly-analysis h4 {
+      color: #ffffff;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    /* Styling for the Chart Canvas within Weekly Analysis */
+    #weeklyChart {
+      display: block;
+      max-width: 100%;
+      margin: 0 auto; 
+    }
   </style>
 </head>
 <body>
@@ -154,6 +204,15 @@ $result = $conn->query($sql);
               <span>(❤️ <?= $hp['like_count'] ?>)</span>
           </div>
       <?php endwhile; ?>
+    </div>
+  </section>
+
+  <!-- Weekly Analysis Section -->
+  <section class="weekly-analysis">
+    <div class="container">
+      <h4>📊 Weekly Hot Topics</h4>
+      <!-- Chart Canvas -->
+      <canvas id="weeklyChart" width="400" height="200"></canvas>
     </div>
   </section>
     
@@ -254,5 +313,34 @@ $result = $conn->query($sql);
       </div>
     </footer>
   </div>
+  <!-- Included Chart.js and chart script for weekly analysis section -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const weeklyData = <?= $weeklyDataJson ?>;
+    const labels = weeklyData.map(item => item.title);
+    const likeCounts = weeklyData.map(item => item.likes);
+    const ctx = document.getElementById('weeklyChart').getContext('2d');
+    const weeklyChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Likes (Last 7 Days)',
+          data: likeCounts,
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgba(255, 99, 132, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+
 </body>
 </html>
