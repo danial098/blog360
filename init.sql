@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS post_categories (
 INSERT INTO users (username, full_name, email, password_hash, role, profile_image)
 VALUES
   ('admin1', 'Admin User', 'admin@example.com', '$2y$10$lj9cbtWMvcU5nMIqAOodPuHI6CuZykwerAQDYIttJ.KcoKrNktgOG', 'admin', '/images/admin1.png'),
-  ('johndoe', 'John Doe', 'john@example.com', 'dummyhashjohn', 'registered', '/images/johndoe.png'),
+  ('johndoe', 'John Doe', 'john@example.com', '$2y$10$GoTZZyl/RSsQ1GrZ3z4pgesq9VNSg56TsJ2xnf5a7QuHm3HFn4YJi', 'registered', '/images/johndoe.png'),
   ('janedoe', 'Jane Doe', 'jane@example.com', 'dummyhashjane', 'registered', '/images/janedoe.png');
 
 -- Insert sample data into blog_posts (including the image field)
