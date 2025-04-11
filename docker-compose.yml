@@ -6,9 +6,15 @@ services:
     ports:
       - 8085:80
     volumes:
-      - ./src:/var/www/html
+      - .:/var/www/html
     depends_on:
       - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - DB_DATABASE=BLOG
+      - DB_TEST_DATABASE=BLOG_TEST
 
   mysql:
     image: mysql:8.0
@@ -18,7 +24,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: BLOG
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Load DDL and initial data
+      - ./init.sql:/docker-entrypoint-initdb.d/1-init.sql  # Load main DB schema and data
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/2-init-test-db.sql  # Load test DB schema and data
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
