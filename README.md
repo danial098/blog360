@@ -100,7 +100,3 @@ Below is an overview table detailing each test class, its purpose, and the numbe
 - Users can like posts.
 - Users can remove their likes from posts.
 - The system correctly tracks and displays the number of likes on posts.
-
----
-
-This structured layout organizes the documentation into clear sections while highlighting each test class and its purpose. You can further enhance the formatting by applying Markdown-specific styling or converting the document into other formats if needed.
