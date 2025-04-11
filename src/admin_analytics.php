@@ -7,137 +7,235 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-$search_query = isset($_GET['search']) ? trim($_GET['search']) : '';
+$end_date = date('Y-m-d');
+$start_date = date('Y-m-d', strtotime('-30 days'));
 
-$search_results = [];
-if ($search_query !== '') {
-    $safe = $conn->real_escape_string($search_query);
-
-
-    $post_query = $conn->query("
-        SELECT 'Post' as type, title AS label, created_at 
-        FROM blog_posts 
-        WHERE title LIKE '%$safe%' OR content LIKE '%$safe%'
-    ");
-    while ($row = $post_query->fetch_assoc()) {
-        $search_results[] = $row;
-    }
-
-
-    $user_query = $conn->query("
-        SELECT 'User' as type, full_name AS label, created_at 
-        FROM users 
-        WHERE full_name LIKE '%$safe%' OR email LIKE '%$safe%'
-    ");
-    while ($row = $user_query->fetch_assoc()) {
-        $search_results[] = $row;
-    }
+if (isset($_GET['start_date']) && isset($_GET['end_date'])) {
+    $start_date = $_GET['start_date'];
+    $end_date = $_GET['end_date'];
 }
 
-
-$weekly_data = [];
-$result = $conn->query("
-    SELECT 'Post' AS type, DATE(created_at) AS date, COUNT(*) AS count
-    FROM blog_posts GROUP BY DATE(created_at)
-    UNION ALL
-    SELECT 'Comment' AS type, DATE(created_at) AS date, COUNT(*) AS count
-    FROM comments GROUP BY DATE(created_at)
-");
-while ($row = $result->fetch_assoc()) {
-    $weekly_data[] = $row;
+$activity_types = [];
+if (isset($_GET['activity'])) {
+    $activity_types = $_GET['activity'];
+} else {
+    $activity_types = ['posts'];
 }
+
+$dates = [];
+$activity_data = [];
+
+$current = strtotime($start_date);
+$end = strtotime($end_date);
+while ($current <= $end) {
+    $date_str = date('Y-m-d', $current);
+    $dates[] = $date_str;
+    $current = strtotime('+1 day', $current);
+}
+
+if (in_array('posts', $activity_types)) {
+    $posts_data = [];
+    $posts_sql = "SELECT DATE(created_at) as date, COUNT(*) as count 
+                  FROM blog_posts 
+                  WHERE created_at BETWEEN '$start_date' AND '$end_date 23:59:59'
+                  GROUP BY DATE(created_at)";
+    $posts_result = $conn->query($posts_sql);
+    
+    foreach ($dates as $date) {
+        $posts_data[$date] = 0;
+    }
+    
+    while ($row = $posts_result->fetch_assoc()) {
+        $posts_data[$row['date']] = (int)$row['count'];
+    }
+    
+    $activity_data['posts'] = array_values($posts_data);
+}
+
+if (in_array('comments', $activity_types)) {
+    $comments_data = [];
+    $comments_sql = "SELECT DATE(created_at) as date, COUNT(*) as count 
+                    FROM comments 
+                    WHERE created_at BETWEEN '$start_date' AND '$end_date 23:59:59'
+                    GROUP BY DATE(created_at)";
+    $comments_result = $conn->query($comments_sql);
+    
+    foreach ($dates as $date) {
+        $comments_data[$date] = 0;
+    }
+    
+    while ($row = $comments_result->fetch_assoc()) {
+        $comments_data[$row['date']] = (int)$row['count'];
+    }
+    
+    $activity_data['comments'] = array_values($comments_data);
+}
+
+if (in_array('likes', $activity_types)) {
+    $likes_data = [];
+    $likes_sql = "SELECT DATE(created_at) as date, COUNT(*) as count 
+                  FROM likes 
+                  WHERE created_at BETWEEN '$start_date' AND '$end_date 23:59:59'
+                  GROUP BY DATE(created_at)";
+    $likes_result = $conn->query($likes_sql);
+    
+    foreach ($dates as $date) {
+        $likes_data[$date] = 0;
+    }
+    
+    while ($row = $likes_result->fetch_assoc()) {
+        $likes_data[$row['date']] = (int)$row['count'];
+    }
+    
+    $activity_data['likes'] = array_values($likes_data);
+}
+
+$formatted_dates = array_map(function($date) {
+    return date('M j', strtotime($date));
+}, $dates);
+
+$dates_json = json_encode($formatted_dates);
+$activity_data_json = json_encode($activity_data);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Analytics</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>Analytics Dashboard - Blog360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-light">
 <div class="container mt-5">
-    <h2 class="mb-4">📊 Admin Analytics</h2>
+    <nav aria-label="breadcrumb" class="mb-4 d-flex justify-content-between align-items-center">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+            <li class="breadcrumb-item"><a href="admin.php">Admin Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Analytics</li>
+        </ol>
+    </nav>
 
-    <form method="GET" class="mb-4">
-        <div class="input-group">
-            <input type="text" name="search" class="form-control" placeholder="Search posts or users..." value="<?= htmlspecialchars($search_query) ?>">
-            <button type="submit" class="btn btn-primary">Search</button>
+    <h2 class="mb-4">📊 Activity Analytics</h2>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="start_date" name="start_date" value="<?= $start_date ?>">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="end_date" name="end_date" value="<?= $end_date ?>">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Activity Types</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="activity[]" value="posts" id="check_posts" 
+                                <?= in_array('posts', $activity_types) ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="check_posts">Posts</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="activity[]" value="comments" id="check_comments"
+                                <?= in_array('comments', $activity_types) ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="check_comments">Comments</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="activity[]" value="likes" id="check_likes"
+                                <?= in_array('likes', $activity_types) ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="check_likes">Likes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 
-    <?php if ($search_query && $search_results): ?>
-        <div class="mb-4">
-            <h5>Search Results for "<strong><?= htmlspecialchars($search_query) ?></strong>":</h5>
-            <ul class="list-group">
-                <?php foreach ($search_results as $result): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            <strong><?= htmlspecialchars($result['label']) ?></strong>
-                            <small class="text-muted">(<?= $result['type'] ?>, <?= $result['created_at'] ?>)</small>
-                        </span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+    <div class="card">
+        <div class="card-body">
+            <canvas id="activityChart" height="100"></canvas>
         </div>
-    <?php elseif ($search_query): ?>
-        <div class="alert alert-warning">No results found.</div>
-    <?php endif; ?>
+    </div>
 
-    <h4 class="mb-3">📈 Weekly Activity (Posts & Comments)</h4>
-    <canvas id="activityChart" height="100"></canvas>
-
-    <a href="admin.php" class="btn btn-secondary mt-4">← Back to Admin Dashboard</a>
+    <a href="admin.php" class="btn btn-secondary mt-3">← Back to Admin Dashboard</a>
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('activityChart').getContext('2d');
-    const rawData = <?= json_encode($weekly_data) ?>;
-
-    const grouped = { Post: {}, Comment: {} };
-    rawData.forEach(item => {
-        const date = item.date;
-        const type = item.type;
-        if (!grouped[type][date]) grouped[type][date] = 0;
-        grouped[type][date] += parseInt(item.count);
-    });
-
-    const labels = [...new Set(rawData.map(item => item.date))].sort();
-    const postCounts = labels.map(date => grouped.Post[date] || 0);
-    const commentCounts = labels.map(date => grouped.Comment[date] || 0);
-
-    new Chart(ctx, {
-        type: 'line',
+    const dates = <?= $dates_json ?>;
+    const activityData = <?= $activity_data_json ?>;
+    
+    const colors = {
+        posts: 'rgba(54, 162, 235, 0.7)',
+        comments: 'rgba(255, 99, 132, 0.7)',
+        likes: 'rgba(75, 192, 192, 0.7)'
+    };
+    
+    const datasets = [];
+    const labels = {
+        posts: 'Posts',
+        comments: 'Comments',
+        likes: 'Likes'
+    };
+    
+    for (const [type, data] of Object.entries(activityData)) {
+        datasets.push({
+            label: labels[type],
+            data: data,
+            backgroundColor: colors[type],
+            borderColor: colors[type].replace('0.7', '1'),
+            borderWidth: 1
+        });
+    }
+    
+    // Create the chart
+    const activityChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Posts',
-                    data: postCounts,
-                    borderColor: 'blue',
-                    fill: false
-                },
-                {
-                    label: 'Comments',
-                    data: commentCounts,
-                    borderColor: 'green',
-                    fill: false
-                }
-            ]
+            labels: dates,
+            datasets: datasets
         },
         options: {
             responsive: true,
             scales: {
-                x: {
-                    title: { display: true, text: 'Date' }
-                },
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'Count' }
+                    title: {
+                        display: true,
+                        text: 'Number of Activities'
+                    },
+                    ticks: {
+                        precision: 0
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Activity by Date',
+                    font: {
+                        size: 16
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
                 }
             }
         }
     });
+});
 </script>
 </body>
-</html>
+</html> 
