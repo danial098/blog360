@@ -2,6 +2,8 @@
 
 This document provides an overview of the automated test suite for the blog system. These tests ensure the proper functioning of various components and features of the application.
 
+<img width="706" alt="image_2" src="https://github.com/user-attachments/assets/e9efade0-19fd-44c9-9906-79dc4a7da321" />
+
 ---
 
 ## Table of Contents
