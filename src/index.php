@@ -171,6 +171,7 @@ $result = $conn->query($sql);
         </div>
       </a>
       <a class="blog2" href="profile.php">Profile</a>
+      <a class="blog2" href="activity.php">Your Activity</a>
 
       <?php if (isset($_SESSION['username'])): ?>
         <?php if ($_SESSION['role'] === 'admin'): ?>
